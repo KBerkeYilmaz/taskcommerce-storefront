@@ -11,11 +11,13 @@ function Home() {
           className="border p-4 min-h-fit"
           key={product.id}
         >
-          <img
+                <Carousel slides={product.gallery}/>
+
+          {/* <img
             src={product.gallery[0]}
             alt="product"
             className="object-contain w-full h-72"
-          />
+          /> */}
           <div className="mt-4 flex justify-between items-center">
             <div>
               <h2 className="text:lg lg:text-xl">{product.name}</h2>
@@ -30,7 +32,6 @@ function Home() {
           </div>
         </div>
       ))}
-      <Carousel />
     </GridLayout>
   );
 }

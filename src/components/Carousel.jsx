@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
 
-function Carousel() {
+function Carousel({ slides }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const slides = [
-    { id: 1, content: 'Slide 1', bgColor: 'bg-red-500' },
-    { id: 2, content: 'Slide 2', bgColor: 'bg-blue-500' },
-    { id: 3, content: 'Slide 3', bgColor: 'bg-green-500' },
-  ];
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
@@ -20,31 +16,33 @@ function Carousel() {
     <div className="relative w-full h-64 overflow-hidden">
       <div className="absolute inset-0 flex">
         {slides.map((slide, index) => (
-          <div
-            key={slide.id}
-            className={`w-full h-full flex-shrink-0 transition-transform duration-500 ${slide.bgColor}`}
+          <img
+            key={index}
+            className={`w-full h-76 flex-shrink-0 transition-transform duration-500 object-contain`}
             style={{
               transform: `translateX(-${currentSlide * 100}%)`,
             }}
-          >
-            <div className="flex items-center justify-center h-full text-white text-2xl">
-              {slide.content}
-            </div>
-          </div>
+            alt="product"
+            src={slide}
+          />
         ))}
       </div>
-      <button
-        onClick={prevSlide}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-4 py-2"
-      >
-        Prev
-      </button>
-      <button
-        onClick={nextSlide}
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-4 py-2"
-      >
-        Next
-      </button>
+      {slides.length > 1 ? (
+        <>
+          <button
+            onClick={prevSlide}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-transparent text-slate-600 px-4 py-2"
+          >
+            <CircleArrowLeft size={20} />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-transparent text-slate-600 px-4 py-2"
+          >
+            <CircleArrowRight size={20} />
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }
