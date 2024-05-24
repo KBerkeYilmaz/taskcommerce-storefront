@@ -1,39 +1,69 @@
+import React, { Component } from "react";
 import { dummyData } from "../server/db/dummy";
 import { Plus } from "lucide-react";
 import GridLayout from "../components/GridLayout";
 import Carousel from "../components/Carousel";
+import { useItemStore } from "../store"; // Adjust the path as necessary
 
-function Home() {
-  return (
-    <GridLayout title={"Welcome"}>
-      {dummyData.products.map((product) => (
-        <div
-          className="border p-4 min-h-fit"
-          key={product.id}
-        >
-                <Carousel slides={product.gallery}/>
+class Home extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      items: useItemStore.getState().items, // Initialize items from store
+    };
+  }
 
-          {/* <img
-            src={product.gallery[0]}
-            alt="product"
-            className="object-contain w-full h-72"
-          /> */}
-          <div className="mt-4 flex justify-between items-center">
-            <div>
-              <h2 className="text:lg lg:text-xl">{product.name}</h2>
-              <p className="text-sm">
-                {product.prices[0].amount}
-                {product.prices[0].currency.symbol}
-              </p>
+  componentDidMount() {
+    // Subscribe to the store
+    this.unsubscribe = useItemStore.subscribe(
+      (items) => this.setState({ items }),
+      (state) => state.items
+    );
+  }
+
+  componentWillUnmount() {
+    // Unsubscribe from the store
+    this.unsubscribe();
+  }
+
+  handleAddItems = (product) => {
+    useItemStore.getState().addItem(product);
+  };
+
+  render() {
+    const { items } = this.state;
+
+    return (
+      <GridLayout title={"Welcome"}>
+        {dummyData.products.map((product) => (
+          <div
+            className="border p-4 min-h-fit"
+            key={product.id}
+          >
+            <Carousel
+              slides={product.gallery}
+              inStock={product.inStock}
+            />
+            <div className="mt-4 flex justify-between items-center">
+              <div>
+                <h2 className="text:lg lg:text-xl">{product.name}</h2>
+                <p className="text-sm">
+                  {product.prices[0].amount}
+                  {product.prices[0].currency.symbol}
+                </p>
+              </div>
+              <button
+                className="mt-2 bg-green-500 text-white px-4 py-2 rounded cursor-pointer"
+                onClick={() => this.handleAddItems(product)}
+              >
+                <Plus />
+              </button>
             </div>
-            <button className="mt-2 bg-green-500 text-white px-4 py-2 rounded">
-              <Plus />
-            </button>
           </div>
-        </div>
-      ))}
-    </GridLayout>
-  );
+        ))}
+      </GridLayout>
+    );
+  }
 }
 
 export default Home;
