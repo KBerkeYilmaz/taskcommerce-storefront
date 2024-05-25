@@ -14,3 +14,9 @@ export const useItemStore = create(
     }
   )
 );
+
+
+export const useCartStore = create((set) => ({
+  cartToggled: false,
+  toggleCart: () => set((state) => ({ cartToggled: !state.cartToggled })),
+}))

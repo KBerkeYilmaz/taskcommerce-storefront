@@ -1,69 +1,119 @@
 import React, { Component } from "react";
 import { dummyData } from "../server/db/dummy";
-import { Plus } from "lucide-react";
+import { ShoppingCart as CartIcon } from "lucide-react";
 import GridLayout from "../components/GridLayout";
 import Carousel from "../components/Carousel";
-import { useItemStore } from "../store"; // Adjust the path as necessary
+import { useItemStore, useCartStore } from "../store"; // Adjust the path as necessary
+import { withRouter } from "../components/withRouter";
+import { Link } from "react-router-dom";
 
 class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
       items: useItemStore.getState().items, // Initialize items from store
+      activeCategory: "",
+      cartToggled: useCartStore.getState().cartToggled,
     };
   }
 
   componentDidMount() {
     // Subscribe to the store
-    this.unsubscribe = useItemStore.subscribe(
-      (items) => this.setState({ items }),
+    this.unsubscribeItems = useItemStore.subscribe(
+      (state) => this.setState({ items: state.items }), // Correctly update state with items
       (state) => state.items
     );
+
+    this.unsubscribeCart = useCartStore.subscribe(
+      (state) => this.setState({ cartToggled: state.cartToggled }), // Correctly update state with cart toggle
+      (state) => state.cartToggled
+    );
+
+    this.updateActiveLink();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.router.location.search !== prevProps.router.location.search
+    ) {
+      this.updateActiveLink();
+    }
   }
 
   componentWillUnmount() {
-    // Unsubscribe from the store
-    this.unsubscribe();
+    // Unsubscribe from the stores
+    this.unsubscribeItems();
+    this.unsubscribeCart();
   }
 
   handleAddItems = (product) => {
     useItemStore.getState().addItem(product);
+    // useCartStore.getState().toggleCart(); // Open cart after adding item
+  };
+
+  updateActiveLink = () => {
+    const { location } = this.props.router;
+    let activeCategory = "";
+
+    if (location.search === "?=tech") {
+      activeCategory = "tech";
+    } else if (location.search === "?=clothes") {
+      activeCategory = "clothes";
+    } else {
+      activeCategory = "/";
+    }
+
+    this.setState({ activeCategory });
   };
 
   render() {
-    const { items } = this.state;
+    const { cartToggled, items, activeCategory } = this.state;
 
     return (
       <GridLayout title={"Welcome"}>
-        {dummyData.products.map((product) => (
-          <div
-            className="border p-4 min-h-fit"
-            key={product.id}
-          >
-            <Carousel
-              slides={product.gallery}
-              inStock={product.inStock}
-            />
-            <div className="mt-4 flex justify-between items-center">
-              <div>
-                <h2 className="text:lg lg:text-xl">{product.name}</h2>
-                <p className="text-sm">
-                  {product.prices[0].amount}
-                  {product.prices[0].currency.symbol}
-                </p>
-              </div>
-              <button
-                className="mt-2 bg-green-500 text-white px-4 py-2 rounded cursor-pointer"
-                onClick={() => this.handleAddItems(product)}
+        {dummyData.products
+          .filter(
+            (item) => item.category === activeCategory || activeCategory === "/"
+          )
+          .map((product) => (
+            <Link
+              to={`/${product.category}/${product.id}`}
+              className="no-underline"
+            >
+              <div
+                className={`p-4 min-h-fit group hover:shadow-2xl transition-shadow duration-300 `}
+                key={product.id}
+                data-testid={`product-${product.name
+                  .toLowerCase()
+                  .replace(/\s/g, "-")}`}
               >
-                <Plus />
-              </button>
-            </div>
-          </div>
-        ))}
+                <Carousel
+                  slides={product.gallery}
+                  inStock={product.inStock}
+                />
+                <div className="mt-4 flex justify-between items-center">
+                  <div>
+                    <h2 className="text:lg lg:text-xl">{product.name}</h2>
+                    <p className="text-sm">
+                      {product.prices[0].amount}
+                      {product.prices[0].currency.symbol}
+                    </p>
+                  </div>
+                  {product.inStock && (
+                    <button
+                      className="mt-2 -translate-y-14 -translate-x-6 bg-green-500 text-white px-4 py-4 rounded-full cursor-pointer disabled:bg-green-300 opacity-0 hover:bg-green-600 group-hover:opacity-100 transition-opacity duration-300"
+                      onClick={() => this.handleAddItems(product)}
+                    >
+                      <CartIcon />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </Link>
+          ))}
       </GridLayout>
     );
   }
 }
 
-export default Home;
+export default withRouter(Home);
