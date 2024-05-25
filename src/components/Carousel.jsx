@@ -47,22 +47,28 @@ class Carousel extends Component {
             />
           ))}
         </div>
-        {slides.length > 1 ? (
-          <>
-            <button
-              onClick={this.prevSlide}
-              className="cursor-pointer absolute left-0 top-1/2 transform -translate-y-1/2 bg-transparent text-slate-600 px-4 py-2"
-            >
-              <CircleArrowLeft size={20} />
-            </button>
-            <button
-              onClick={this.nextSlide}
-              className="cursor-pointer absolute right-0 top-1/2 transform -translate-y-1/2 bg-transparent text-slate-600 px-4 py-2"
-            >
-              <CircleArrowRight size={20} />
-            </button>
-          </>
-        ) : null}
+        {this.stock ? (
+          slides.length > 1 ? (
+            <>
+              <button
+                onClick={this.prevSlide}
+                className="cursor-pointer absolute left-0 top-1/2 transform -translate-y-1/2 bg-transparent text-slate-600 px-4 py-2"
+              >
+                <CircleArrowLeft size={20} />
+              </button>
+              <button
+                onClick={this.nextSlide}
+                className="cursor-pointer absolute right-0 top-1/2 transform -translate-y-1/2 bg-transparent text-slate-600 px-4 py-2"
+              >
+                <CircleArrowRight size={20} />
+              </button>
+            </>
+          ) : null
+        ) : (
+          <div className="absolute inset-0 flex justify-center items-center bg-gray-300 bg-opacity-50">
+            <p className="text-slate-500 text-lg">OUT OF STOCK</p>
+          </div>
+        )}
       </div>
     );
   }
