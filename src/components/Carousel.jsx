@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react";
-
+import { Link } from "react-router-dom";
 class Carousel extends Component {
   constructor(props) {
     super(props);
@@ -36,6 +36,10 @@ class Carousel extends Component {
       <div className="relative w-full h-64 overflow-hidden">
         <div className="absolute inset-0 flex">
           {slides.map((slide, index) => (
+            // <Link
+            //   to={`/${product.category}/${product.id}`}
+            //   className="no-underline"
+            // >
             <img
               key={index}
               className={`w-full h-76 flex-shrink-0 transition-transform duration-500 object-contain`}
@@ -45,6 +49,7 @@ class Carousel extends Component {
               alt="product"
               src={slide}
             />
+            // </Link>
           ))}
         </div>
         {this.stock ? (

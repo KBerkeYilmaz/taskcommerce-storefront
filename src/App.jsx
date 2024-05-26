@@ -5,12 +5,11 @@ import Home from "./pages/home";
 import ProductDetail from "./pages/product-detail";
 import { dummyData } from "./server/db/dummy";
 
-console.log(dummyData);
 function App() {
   return (
     <Router
-      path="*"
-      element={<ErrorPage />}
+      path="/*"
+      errorElement={<ErrorPage />}
     >
       <Layout>
         <Routes>
@@ -21,7 +20,7 @@ function App() {
           {dummyData.products.map((product) => (
             <Route
               key={product.id}
-              path={`/${product.category}/${product.id}`}
+              path="/:category/:id"
               element={<ProductDetail />}
             />
           ))}

@@ -47,9 +47,18 @@ class Home extends Component {
   }
 
   handleAddItems = (product) => {
-    useItemStore.getState().addItem(product);
+    // Automatically select the first attribute value for each attribute
+    const selectedAttributes = product.attributes.reduce((acc, attribute) => {
+      acc[attribute.id] = attribute.items[0].value;
+      return acc;
+    }, {});
+
+    const productWithAttributes = { ...product, selectedAttributes };
+    console.log(productWithAttributes);
+    useItemStore.getState().addItem(productWithAttributes);
     // useCartStore.getState().toggleCart(); // Open cart after adding item
   };
+
 
   updateActiveLink = () => {
     const { location } = this.props.router;
@@ -76,22 +85,22 @@ class Home extends Component {
             (item) => item.category === activeCategory || activeCategory === "/"
           )
           .map((product) => (
-            <Link
-              to={`/${product.category}/${product.id}`}
-              className="no-underline"
+            <div
+              className={`p-4 min-h-fit group hover:shadow-2xl transition-shadow duration-300 `}
+              key={product.id}
+              data-testid={`product-${product.name
+                .toLowerCase()
+                .replace(/\s/g, "-")}`}
             >
-              <div
-                className={`p-4 min-h-fit group hover:shadow-2xl transition-shadow duration-300 `}
-                key={product.id}
-                data-testid={`product-${product.name
-                  .toLowerCase()
-                  .replace(/\s/g, "-")}`}
-              >
                 <Carousel
                   slides={product.gallery}
                   inStock={product.inStock}
                 />
-                <div className="mt-4 flex justify-between items-center">
+              <div className="mt-4 flex justify-between items-center">
+                <Link
+                  to={`/${product.category}/${product.id}`}
+                  className="no-underline"
+                >
                   <div>
                     <h2 className="text:lg lg:text-xl">{product.name}</h2>
                     <p className="text-sm">
@@ -99,17 +108,21 @@ class Home extends Component {
                       {product.prices[0].currency.symbol}
                     </p>
                   </div>
-                  {product.inStock && (
-                    <button
-                      className="mt-2 -translate-y-14 -translate-x-6 bg-green-500 text-white px-4 py-4 rounded-full cursor-pointer disabled:bg-green-300 opacity-0 hover:bg-green-600 group-hover:opacity-100 transition-opacity duration-300"
-                      onClick={() => this.handleAddItems(product)}
-                    >
-                      <CartIcon />
-                    </button>
-                  )}
-                </div>
+                </Link>
+
+                {product.inStock && (
+                  <button
+                    className="flex justify-center items-center mt-2 -translate-y-14 -translate-x-6 bg-green-500 text-white px-4 py-4 rounded-full cursor-pointer disabled:bg-green-300 opacity-0 hover:bg-green-600 group-hover:opacity-100 transition-opacity duration-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      this.handleAddItems(product);
+                    }}
+                  >
+                    <CartIcon />
+                  </button>
+                )}
               </div>
-            </Link>
+            </div>
           ))}
       </GridLayout>
     );
