@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { withRouter } from "../components/withRouter";
 import { dummyData } from "../server/db/dummy";
 import BigCarousel from "../components/BigCarousel";
-import Banner from "../components/Banner";
 import { Interweave, Markup } from "interweave";
 import { useItemStore } from "../store";
 
@@ -12,8 +11,8 @@ class ProductDetail extends Component {
     this.state = {
       product: null,
       currentSlide: 0,
-      items: useItemStore.getState().items, // Initialize items from store
-      attributeChecked: false,
+      items: useItemStore.getState().items,
+      selectedAttributes: {},
     };
   }
 
@@ -38,21 +37,34 @@ class ProductDetail extends Component {
     this.setState({ product });
   };
 
+  handleAttributeSelect = (attributeId, value) => {
+    this.setState((prevState) => ({
+      selectedAttributes: {
+        ...prevState.selectedAttributes,
+        [attributeId]: value,
+      },
+    }));
+  };
+
   handleAddItems = (product) => {
-    // Automatically select the first attribute value for each attribute
-    const selectedAttributes = product.attributes.reduce((acc, attribute) => {
-      acc[attribute.id] = attribute.items[0].value;
-      return acc;
-    }, {});
+    const { selectedAttributes } = this.state;
 
     const productWithAttributes = { ...product, selectedAttributes };
 
     useItemStore.getState().addItem(productWithAttributes);
-    // useCartStore.getState().toggleCart(); // Open cart after adding item
+    // useCartStore.getState().toggleCart();
+  };
+
+  areAllAttributesSelected = () => {
+    const { product, selectedAttributes } = this.state;
+    if (!product || !product.attributes) return false;
+    return product.attributes.every(
+      (attribute) => selectedAttributes[attribute.id]
+    );
   };
 
   render() {
-    const { attributeChecked, product, currentSlide } = this.state;
+    const { product, currentSlide, selectedAttributes } = this.state;
 
     if (!product) {
       return (
@@ -61,6 +73,8 @@ class ProductDetail extends Component {
         </div>
       );
     }
+
+    const allAttributesSelected = this.areAllAttributesSelected();
 
     return (
       <div className="w-full h-full mx-auto px-8 lg:px-32 flex">
@@ -96,22 +110,35 @@ class ProductDetail extends Component {
               <div className="flex gap-4">
                 {attribute.id !== "Color"
                   ? attribute.items.map((item) => (
-                      <input
+                      <button
                         key={item.id}
                         type="button"
-                        className=" text-slate-700 px-5 py-2 border-2 border-black source-sans-3 cursor-pointer"
-                        value={item.value}
-                        placeholder={item.value}
-                      />
+                        className={`text-slate-700 px-5 py-2 border-2 cursor-pointer ${
+                          selectedAttributes[attribute.id] === item.value
+                            ? "bg-black text-white"
+                            : "border-black"
+                        }`}
+                        onClick={() =>
+                          this.handleAttributeSelect(attribute.id, item.value)
+                        }
+                      >
+                        {item.value}
+                      </button>
                     ))
                   : attribute.items.map((item) => (
                       <button
                         key={item.id}
                         type="button"
-                        className=" text-slate-700 px-4 py-4"
+                        className={`text-slate-700 px-4 py-4 cursor-pointer ${
+                          selectedAttributes[attribute.id] === item.value
+                            ? "ring-2 ring-green-500 ring-offset-1"
+                            : ""
+                        }`}
                         style={{ backgroundColor: item.value }}
                         title={item.displayValue}
-                        value={item.displayValue}
+                        onClick={() =>
+                          this.handleAttributeSelect(attribute.id, item.value)
+                        }
                       ></button>
                     ))}
               </div>
@@ -129,7 +156,7 @@ class ProductDetail extends Component {
 
           <button
             className="w-full bg-green-500 text-white py-4 text-center hover:bg-green-600 disabled:bg-green-300"
-            disabled={!product.inStock}
+            disabled={!product.inStock || !allAttributesSelected}
             onClick={() => this.handleAddItems(product)}
           >
             ADD TO CART

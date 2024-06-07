@@ -4,8 +4,8 @@ import {
   ShoppingCart as CartIcon,
   AlignJustify as BurgerBtn,
 } from "lucide-react";
-import { useItemStore, useCartStore } from "../../../store"; // Adjust the path as necessary
-import ShoppingBar from "../../../components/ShoppingBar"; // Adjust the path as necessary
+import { useItemStore, useCartStore } from "../../../store"; 
+import ShoppingBar from "../../../components/ShoppingBar"; 
 import { withRouter } from "../../../components/withRouter";
 
 class Navbar extends Component {
@@ -14,20 +14,19 @@ class Navbar extends Component {
     this.state = {
       cartState: useCartStore.getState().cartToggled,
       burgerState: false,
-      items: useItemStore.getState().items, // Initialize items from store
+      itemsCount: useItemStore.getState().itemsCount(), 
       activeLink: "",
     };
   }
 
   componentDidMount() {
-    // Subscribe to the store
     this.unsubscribeItems = useItemStore.subscribe(
-      (state) => this.setState({ items: state.items }), // Correctly update state with items
+      (state) => this.setState({ itemsCount: state.itemsCount() }), 
       (state) => state.items
     );
 
     this.unsubscribeCart = useCartStore.subscribe(
-      (state) => this.setState({ cartState: state.cartToggled }), // Correctly update state with cart toggle
+      (state) => this.setState({ cartState: state.cartToggled }), 
       (state) => state.cartToggled
     );
 
@@ -72,7 +71,8 @@ class Navbar extends Component {
   };
 
   render() {
-    const { burgerState, cartState, items, activeLink } = this.state;
+    const { burgerState, cartState, items, activeLink, itemsCount } = this.state;
+    console.log(items);
 
     return (
       <nav className="mx-auto px-8 lg:px-32 py-8 grid grid-cols-2 lg:grid-cols-3 h-fit w-full z-50 mb-8">
@@ -276,9 +276,9 @@ class Navbar extends Component {
           onClick={this.handleClick}
         >
           <CartIcon size="24" />
-          {items.length > 0 && (
+          {itemsCount > 0 && (
             <span className="text-xs absolute translate-x-2 -translate-y-2 bg-green-500 rounded-full text-white flex items-center justify-center w-6 h-6">
-              {items.length}
+              {itemsCount}
             </span>
           )}
         </button>

@@ -5,8 +5,16 @@ class ShoppingBar extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: useItemStore.getState().items, // Initialize items from store
+      items: useItemStore.getState().items, 
     };
+  }
+
+  componentDidMount() {
+    // Subscribe to the store
+    this.unsubscribeItems = useItemStore.subscribe(
+      (state) => this.setState({ items: state.items }), 
+      (state) => state.items
+    );
   }
 
   componentDidUpdate(prevProps) {
@@ -15,12 +23,21 @@ class ShoppingBar extends Component {
     }
   }
 
+  componentWillUnmount() {
+    // Unsubscribe from the store
+    this.unsubscribeItems();
+  }
+
   handleAddItems = (product) => {
     useItemStore.getState().addItem(product);
   };
 
-  handleRemoveItems = (cartID) => {
-    useItemStore.getState().removeItem(cartID);
+  handleRemoveItems = (product) => {
+    useItemStore.getState().removeItem(product);
+  };
+
+  handlePlaceOrder = () => {
+    useItemStore.getState().resetItems();
   };
 
   render() {
@@ -68,7 +85,12 @@ class ShoppingBar extends Component {
                         ? attribute.items.map((attrItem) => (
                             <button
                               key={attrItem.id}
-                              className="text-slate-700 text-sm px-1.5 border-2 border-black source-sans-3"
+                              className={`text-slate-700 text-sm px-1.5 py-1 border-2 cursor-pointer ${
+                                item.selectedAttributes[attribute.id] ===
+                                attrItem.value
+                                  ? "bg-black text-white"
+                                  : "border-black"
+                              }`}
                             >
                               {attrItem.value}
                             </button>
@@ -76,7 +98,12 @@ class ShoppingBar extends Component {
                         : attribute.items.map((attrItem) => (
                             <button
                               key={attrItem.id}
-                              className="text-slate-700 p-3"
+                              className={`text-slate-700 ml-1 p-3 cursor-pointer ${
+                                item.selectedAttributes[attribute.id] ===
+                                attrItem.value
+                                  ? "ring-2 ring-green-500"
+                                  : ""
+                              }`}
                               style={{ backgroundColor: attrItem.value }}
                               title={attrItem.displayValue}
                             ></button>
@@ -85,7 +112,7 @@ class ShoppingBar extends Component {
                   </div>
                 ))}
               </div>
-              <div className="h-full flex flex-col justify-between items-start">
+              <div className="h-full flex flex-col justify-between items-center">
                 <button
                   className="px-2 border border-black text-center text-2xl"
                   onClick={() => this.handleAddItems(item)}
@@ -97,7 +124,7 @@ class ShoppingBar extends Component {
                 </span>
                 <button
                   className="px-2 border border-black text-center text-2xl"
-                  onClick={() => this.handleRemoveItems(item.cartID)}
+                  onClick={() => this.handleRemoveItems(item)}
                 >
                   -
                 </button>
@@ -119,7 +146,10 @@ class ShoppingBar extends Component {
             {items.length > 0 && items[0].prices[0].currency.symbol}
             {parseFloat(
               items
-                .reduce((acc, item) => acc + item.prices[0].amount, 0)
+                .reduce(
+                  (acc, item) => acc + item.prices[0].amount * item.quantity,
+                  0
+                )
                 .toFixed(6)
             )}
           </span>
@@ -127,6 +157,7 @@ class ShoppingBar extends Component {
         <button
           className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-center rounded text-sm font-semibold disabled:bg-green-300"
           disabled={items.length === 0}
+          onClick={this.handlePlaceOrder}
         >
           PLACE ORDER
         </button>

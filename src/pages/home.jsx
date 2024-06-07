@@ -3,7 +3,7 @@ import { dummyData } from "../server/db/dummy";
 import { ShoppingCart as CartIcon } from "lucide-react";
 import GridLayout from "../components/GridLayout";
 import Carousel from "../components/Carousel";
-import { useItemStore, useCartStore } from "../store"; // Adjust the path as necessary
+import { useItemStore, useCartStore } from "../store"; 
 import { withRouter } from "../components/withRouter";
 import { Link } from "react-router-dom";
 
@@ -11,25 +11,49 @@ class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: useItemStore.getState().items, // Initialize items from store
+      items: useItemStore.getState().items, 
       activeCategory: "",
       cartToggled: useCartStore.getState().cartToggled,
+      pageTitle: "",
     };
   }
+
+
+  fetchProducts = async () => {
+    try {
+      const response = await fetch('http://localhost:7000/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query: `query { products { id name inStock description category brand } }`
+        })
+      });
+      const result = await response.json();
+      if (result.data && result.data.products) {
+        // this.setState({ items: result.data.products });
+        console.log(result.data.products)
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
   componentDidMount() {
     // Subscribe to the store
     this.unsubscribeItems = useItemStore.subscribe(
-      (state) => this.setState({ items: state.items }), // Correctly update state with items
+      (state) => this.setState({ items: state.items }),
       (state) => state.items
     );
 
     this.unsubscribeCart = useCartStore.subscribe(
-      (state) => this.setState({ cartToggled: state.cartToggled }), // Correctly update state with cart toggle
+      (state) => this.setState({ cartToggled: state.cartToggled }), 
       (state) => state.cartToggled
     );
 
     this.updateActiveLink();
+    this.fetchProducts(); 
   }
 
   componentDidUpdate(prevProps) {
@@ -47,7 +71,6 @@ class Home extends Component {
   }
 
   handleAddItems = (product) => {
-    // Automatically select the first attribute value for each attribute
     const selectedAttributes = product.attributes.reduce((acc, attribute) => {
       acc[attribute.id] = attribute.items[0].value;
       return acc;
@@ -59,27 +82,30 @@ class Home extends Component {
     // useCartStore.getState().toggleCart(); // Open cart after adding item
   };
 
-
   updateActiveLink = () => {
     const { location } = this.props.router;
     let activeCategory = "";
 
     if (location.search === "?=tech") {
       activeCategory = "tech";
+      this.pageTitle = "Tech";
     } else if (location.search === "?=clothes") {
       activeCategory = "clothes";
+      this.pageTitle = "Clothes";
     } else {
       activeCategory = "/";
+      this.pageTitle = "All Products";
     }
 
     this.setState({ activeCategory });
+    this.setState({ pageTitle: this.pageTitle });
   };
 
   render() {
-    const { cartToggled, items, activeCategory } = this.state;
+    const { pageTitle, activeCategory } = this.state;
 
     return (
-      <GridLayout title={"Welcome"}>
+      <GridLayout title={pageTitle}>
         {dummyData.products
           .filter(
             (item) => item.category === activeCategory || activeCategory === "/"
@@ -92,10 +118,10 @@ class Home extends Component {
                 .toLowerCase()
                 .replace(/\s/g, "-")}`}
             >
-                <Carousel
-                  slides={product.gallery}
-                  inStock={product.inStock}
-                />
+              <Carousel
+                slides={product.gallery}
+                inStock={product.inStock}
+              />
               <div className="mt-4 flex justify-between items-center">
                 <Link
                   to={`/${product.category}/${product.id}`}
